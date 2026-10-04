@@ -4,6 +4,7 @@ import BrushStroke from '../components/BrushStroke.astro';
 import TornPhoto from '../components/TornPhoto.astro';
 import StoryCard from '../components/StoryCard.astro';
 import { getStories } from '../lib/stories';
+import fotoPalestina from '../assets/palestina.jpg';
 
 const stories = await getStories();
 
@@ -71,7 +72,13 @@ const steps = [
 
         <div class="manifesto__visual">
           <BrushStroke direction="vertical" seed={9} class="manifesto__brush" />
-          <TornPhoto seed={12} class="manifesto__photo" />
+          <TornPhoto
+            src={fotoPalestina}
+            alt="Giovane donna palestinese con la kefiah, in una foto d'archivio in bianco e nero"
+            position="70% center"
+            seed={12}
+            class="manifesto__photo"
+          />
         </div>
       </div>
     </div>

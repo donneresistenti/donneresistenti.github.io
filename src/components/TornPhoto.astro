@@ -13,9 +13,18 @@ interface Props {
   seed?: number;
   class?: string;
   sizes?: string;
+  /** `object-position` dell'immagine, per scegliere quale parte resta nel ritaglio 4:5. */
+  position?: string;
 }
 
-const { src, alt = '', seed = 3, class: className, sizes = '(min-width: 768px) 40vw, 100vw' } = Astro.props;
+const {
+  src,
+  alt = '',
+  seed = 3,
+  class: className,
+  sizes = '(min-width: 768px) 40vw, 100vw',
+  position,
+} = Astro.props;
 const rnd = createRandom(seed);
 
 // Angoli tagliati di sbieco + bordi leggermente frastagliati (coordinate in %).
@@ -43,7 +52,14 @@ const polygon = [
 <figure class:list={['torn', className]} style={`--torn-shape: polygon(${polygon})`}>
   {
     src ? (
-      <Image src={src} alt={alt} sizes={sizes} widths={[480, 800, 1200]} class="torn__img" />
+      <Image
+        src={src}
+        alt={alt}
+        sizes={sizes}
+        widths={[480, 800, 1200]}
+        class="torn__img"
+        style={position && `object-position: ${position}`}
+      />
     ) : (
       <div class="torn__placeholder" role="img" aria-label={alt || 'Immagine in arrivo'} />
     )
