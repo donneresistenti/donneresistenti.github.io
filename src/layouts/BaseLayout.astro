@@ -1,0 +1,50 @@
+---
+import '@fontsource/bebas-neue';
+import '@fontsource/inter/300.css';
+import '@fontsource/inter/400.css';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import SvgFilters from '../components/SvgFilters.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const siteName = 'Donne Resistenti';
+const {
+  title,
+  description = 'Il ruolo delle donne nelle resistenze, nella storia e nel mondo: le storie della mostra Donne Resistenti.',
+} = Astro.props;
+const pageTitle = title ? `${title} — ${siteName}` : siteName;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
+    <meta name="theme-color" content="#f6f0eb" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content="it_IT" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenuto">Vai al contenuto</a>
+    <SvgFilters />
+    <Header />
+    <main id="contenuto">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

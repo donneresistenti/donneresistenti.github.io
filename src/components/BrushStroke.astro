@@ -1,0 +1,91 @@
+---
+/**
+ * Pennellata a righe verdi del poster, generata in SVG.
+ * - horizontal: blocco di righe orizzontali che esce dal bordo destro (in alto nel poster)
+ * - vertical: righe verticali ondulate (dietro la foto nel poster)
+ */
+import { createRandom, round } from '../lib/random';
+
+interface Props {
+  direction?: 'horizontal' | 'vertical';
+  color?: string;
+  seed?: number;
+  class?: string;
+}
+
+const { direction = 'horizontal', color = 'var(--color-green)', seed = 1, class: className } = Astro.props;
+const rnd = createRandom(seed);
+
+type Stroke = { d: string; width: number };
+type Dot = { cx: number; cy: number; r: number };
+
+const strokes: Stroke[] = [];
+const dots: Dot[] = [];
+let viewBox: string;
+
+if (direction === 'horizontal') {
+  const W = 640;
+  const H = 300;
+  viewBox = `0 0 ${W} ${H}`;
+  let y = 6;
+  while (y < H - 10) {
+    const width = rnd.range(12, 30);
+    const cy = y + width / 2;
+    const x0 = rnd.range(20, 150);
+    const sag = rnd.range(-4, 4);
+    strokes.push({
+      d: `M${round(x0)} ${round(cy)} Q${round((x0 + W) / 2)} ${round(cy + sag)} ${W + 40} ${round(cy + rnd.range(-3, 3))}`,
+      width: round(width),
+    });
+    // schizzi vicino all'attacco della pennellata
+    const count = Math.floor(rnd.range(0, 4));
+    for (let i = 0; i < count; i++) {
+      dots.push({ cx: round(x0 - rnd.range(8, 70)), cy: round(cy + rnd.range(-14, 14)), r: round(rnd.range(0.8, 3.6)) });
+    }
+    y += width + rnd.range(2, 7);
+  }
+} else {
+  const W = 420;
+  const H = 720;
+  viewBox = `0 0 ${W} ${H}`;
+  let x = 10;
+  while (x < W - 10) {
+    const width = rnd.range(18, 32);
+    const cx = x + width / 2;
+    const y0 = rnd.range(10, 90);
+    const amp = rnd.range(-12, 12);
+    const len = H - y0;
+    strokes.push({
+      d: `M${round(cx)} ${round(y0)} C${round(cx + amp)} ${round(y0 + len / 3)} ${round(cx - amp)} ${round(y0 + (2 * len) / 3)} ${round(cx + rnd.range(-6, 6))} ${H + 40}`,
+      width: round(width),
+    });
+    const count = Math.floor(rnd.range(0, 3));
+    for (let i = 0; i < count; i++) {
+      dots.push({ cx: round(cx + rnd.range(-16, 16)), cy: round(y0 - rnd.range(6, 40)), r: round(rnd.range(0.8, 3.2)) });
+    }
+    x += width + rnd.range(7, 15);
+  }
+}
+---
+
+<svg
+  class:list={['brush', `brush--${direction}`, className]}
+  viewBox={viewBox}
+  aria-hidden="true"
+  focusable="false"
+  preserveAspectRatio={direction === 'horizontal' ? 'xMinYMid slice' : 'xMidYMin slice'}
+>
+  <g filter={`url(#brush-${direction === 'horizontal' ? 'h' : 'v'})`} fill="none" stroke={color} stroke-linecap="round">
+    {strokes.map((s) => <path d={s.d} stroke-width={s.width} />)}
+  </g>
+  <g fill={color}>
+    {dots.map((d) => <circle cx={d.cx} cy={d.cy} r={d.r} />)}
+  </g>
+</svg>
+
+<style>
+  .brush {
+    pointer-events: none;
+    user-select: none;
+  }
+</style>

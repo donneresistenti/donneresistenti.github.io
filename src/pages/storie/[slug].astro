@@ -1,0 +1,73 @@
+---
+/**
+ * Pagina di dettaglio di una storia. Per ora è un template minimo:
+ * verrà sviluppato quando aggiungeremo le singole storie.
+ */
+import type { GetStaticPaths } from 'astro';
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TornPhoto from '../../components/TornPhoto.astro';
+import { getStories } from '../../lib/stories';
+
+export const getStaticPaths = (async () => {
+  const stories = await getStories();
+  return stories.map((story) => ({ params: { slug: story.id }, props: { story } }));
+}) satisfies GetStaticPaths;
+
+const { story } = Astro.props;
+const { title, subtitle, place, period, excerpt, cover, coverAlt } = story.data;
+const { Content } = await render(story);
+---
+
+<BaseLayout title={title} description={excerpt}>
+  <article class="section story">
+    <div class="container story__inner">
+      <header class="story__head">
+        <p class="eyebrow">{place} · {period}</p>
+        <h1 class="story__title grunge">{title}</h1>
+        {subtitle && <p class="caps">{subtitle}</p>}
+      </header>
+      <TornPhoto src={cover} alt={coverAlt ?? ''} seed={title.length} class="story__photo" />
+      <div class="story__body">
+        <Content />
+      </div>
+      <a class="story__back" href={`${import.meta.env.BASE_URL}#storie`}>← Tutte le storie</a>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .story__inner {
+    display: grid;
+    gap: var(--space-lg);
+  }
+
+  .story__head {
+    display: grid;
+    gap: var(--space-sm);
+  }
+
+  .story__title {
+    font-size: var(--text-h2);
+  }
+
+  .story__inner :global(.story__photo) {
+    max-width: 32rem;
+  }
+
+  .story__body {
+    display: grid;
+    gap: var(--space-sm);
+    max-width: 42rem;
+    font-size: var(--text-lead);
+  }
+
+  .story__back {
+    font-family: var(--font-display);
+    font-size: var(--text-caps);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--color-red);
+  }
+</style>

@@ -1,0 +1,40 @@
+/*
+ * Design tokens ricavati dal poster introduttivo della mostra ("end 1.psd").
+ * Colori campionati direttamente dal file; i font originali (PF Fuel Decay/Grime,
+ * Helvetica Neue Light) sono sostituiti da Bebas Neue + Helvetica/Inter.
+ */
+:root {
+  /* Colori */
+  --color-red: #851e1e;
+  --color-red-dark: #6a1414;
+  --color-green: #60a84e;
+  --color-paper: #f6f0eb;
+  --color-paper-shade: #ece4dc;
+  --color-ink: #121010;
+  --color-ink-soft: #2b2727;
+  --color-gray: #8a8584;
+
+  /* Font */
+  --font-display: 'Bebas Neue', 'Oswald', Impact, 'Arial Narrow', sans-serif;
+  --font-body: 'Helvetica Neue', Helvetica, 'Inter', Arial, sans-serif;
+
+  /* Scala tipografica fluida */
+  --text-sm: clamp(0.875rem, 0.84rem + 0.15vw, 0.95rem);
+  --text-base: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+  --text-lead: clamp(1.15rem, 1.05rem + 0.5vw, 1.45rem);
+  --text-caps: clamp(1.25rem, 1.05rem + 0.9vw, 1.9rem);
+  --text-h3: clamp(1.75rem, 1.4rem + 1.4vw, 2.6rem);
+  --text-h2: clamp(2.75rem, 1.9rem + 4vw, 5.5rem);
+  --text-hero: clamp(4.25rem, 1.5rem + 13vw, 12.5rem);
+
+  /* Spaziature */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.75rem;
+  --space-lg: clamp(2.5rem, 2rem + 2.5vw, 4rem);
+  --space-xl: clamp(4rem, 3rem + 5vw, 8rem);
+
+  /* Layout */
+  --container: 76rem;
+  --gutter: clamp(1.25rem, 0.5rem + 4vw, 4rem);
+}

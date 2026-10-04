@@ -1,0 +1,366 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import BrushStroke from '../components/BrushStroke.astro';
+import TornPhoto from '../components/TornPhoto.astro';
+import StoryCard from '../components/StoryCard.astro';
+import { getStories } from '../lib/stories';
+
+const stories = await getStories();
+
+const steps = [
+  {
+    title: 'Ricerca',
+    text: 'Raccolta di fonti, documenti e testimonianze sulle donne che hanno preso parte alle resistenze.',
+  },
+  {
+    title: 'Analisi',
+    text: 'Studio e confronto delle storie, per restituirne il contesto storico, politico e sociale.',
+  },
+  {
+    title: 'Stesura',
+    text: 'Scrittura dei testi che accompagnano ogni storia raccontata nella mostra.',
+  },
+  {
+    title: 'Rappresentazione',
+    text: 'Progettazione dei poster della mostra e di questo sito, per rendere le storie accessibili a chiunque.',
+  },
+];
+---
+
+<BaseLayout>
+  <!-- Hero -->
+  <section class="hero">
+    <BrushStroke direction="horizontal" seed={4} class="hero__brush" />
+    <div class="container hero__inner">
+      <p class="eyebrow">Una mostra</p>
+      <h1 class="hero__title grunge">Donne<br />Resistenti</h1>
+      <p class="caps hero__subtitle">
+        Il ruolo delle donne nelle resistenze, nella storia e nel mondo.
+      </p>
+      <a class="hero__cta" href="#storie">Scopri le storie <span aria-hidden="true">↓</span></a>
+    </div>
+  </section>
+
+  <!-- Manifesto: il poster introduttivo della mostra -->
+  <section class="section manifesto" aria-labelledby="manifesto-title">
+    <div class="container">
+      <h2 id="manifesto-title" class="manifesto__title grunge">L’imperialismo<br />non è emancipazione…</h2>
+      <p class="caps manifesto__statement">
+        L’imperialismo è una gigantesca accumulazione di capitale che crea un sistema di oppressione
+        universale, il giogo di un pugno di paesi avanzati sulla stragrande maggioranza della
+        popolazione della Terra.
+      </p>
+
+      <div class="manifesto__grid">
+        <div class="manifesto__text">
+          <p class="lead">
+            Si tratta di un giogo che la classe borghese deve tenere in piedi e rafforzare con mezzi
+            economici e propagandistici. Ecco perché diventa estremamente necessario per essa
+            raccontare di guerre giuste.
+          </p>
+          <p class="lead">
+            Ecco perché diventa estremamente necessario nascondere gli interessi reali di guerra, che
+            sono di natura economica, dietro interessi sociali, quali l’emancipazione della donna.
+          </p>
+          <p class="caps manifesto__quote">
+            “Ridare il sorriso alle donne afghane” fu uno degli slogan della guerra statunitense in
+            Afghanistan 20 anni fa e “liberare le donne iraniane oppresse dal velo” lo slogan dietro
+            il quale tentano di mascherarsi USA ed entità sionista, oggi.
+          </p>
+        </div>
+
+        <div class="manifesto__visual">
+          <BrushStroke direction="vertical" seed={9} class="manifesto__brush" />
+          <TornPhoto seed={12} class="manifesto__photo" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Le storie -->
+  <section id="storie" class="section stories" aria-labelledby="storie-title">
+    <div class="container">
+      <header class="section-head">
+        <h2 id="storie-title" class="grunge">Le storie</h2>
+        <p class="lead">
+          Volti, nomi e percorsi di donne che, in epoche e luoghi diversi, hanno scelto di resistere.
+        </p>
+      </header>
+
+      {
+        stories.length > 0 ? (
+          <div class="stories__grid">
+            {stories.map((story, index) => (
+              <StoryCard story={story} index={index} />
+            ))}
+          </div>
+        ) : (
+          <p class="caps stories__empty">Le storie sono in arrivo.</p>
+        )
+      }
+    </div>
+  </section>
+
+  <!-- Il progetto -->
+  <section id="progetto" class="section project" aria-labelledby="progetto-title">
+    <div class="container">
+      <header class="section-head">
+        <h2 id="progetto-title" class="grunge">Il progetto</h2>
+        <p class="lead">
+          Donne Resistenti racconta, attraverso tutte le sue diverse sfaccettature, il ruolo delle
+          donne all’interno delle resistenze nella storia e nel mondo. Per dare maggiore libertà di
+          accesso a questi contenuti, la mostra diventa anche un sito web in cui esplorare le storie in
+          modo interattivo.
+        </p>
+      </header>
+
+      <ol class="steps">
+        {
+          steps.map((step, i) => (
+            <li class="step">
+              <span class="step__number grunge" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <h3 class="step__title">{step.title}</h3>
+              <p>{step.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- Chiusura -->
+  <section class="section closing" aria-label="Conclusione">
+    <BrushStroke direction="vertical" seed={21} class="closing__brush" />
+    <div class="container">
+      <p class="closing__text grunge grunge--fine">
+        In qualsiasi contesto sono le donne a condurre il loro percorso di autodeterminazione e
+        nessuno può farlo al posto loro.
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Hero */
+  .hero {
+    position: relative;
+    padding-block: var(--space-lg) var(--space-xl);
+    overflow: hidden;
+  }
+
+  .hero :global(.hero__brush) {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: min(44vw, 46rem);
+    height: clamp(10rem, 30vw, 28rem);
+    animation: paint 1.1s cubic-bezier(0.6, 0, 0.2, 1) both;
+  }
+
+  .hero__inner {
+    position: relative;
+    display: grid;
+    gap: var(--space-md);
+    justify-items: start;
+  }
+
+  .hero__inner > * {
+    animation: rise 0.8s ease both;
+  }
+
+  .hero__inner > :nth-child(2) {
+    animation-delay: 0.1s;
+  }
+
+  .hero__inner > :nth-child(3) {
+    animation-delay: 0.25s;
+  }
+
+  .hero__inner > :nth-child(4) {
+    animation-delay: 0.4s;
+  }
+
+  .hero__title {
+    font-size: var(--text-hero);
+    line-height: 0.86;
+    margin-top: clamp(1.5rem, 6vw, 5rem);
+  }
+
+  .hero__subtitle {
+    max-width: 30ch;
+  }
+
+  .hero__cta {
+    font-family: var(--font-display);
+    font-size: var(--text-caps);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--color-paper);
+    background: var(--color-red);
+    padding: 0.35em 0.9em 0.25em;
+    transition: background-color 0.2s ease;
+  }
+
+  .hero__cta:hover {
+    background: var(--color-red-dark);
+  }
+
+  /* Manifesto */
+  .manifesto__title {
+    font-size: var(--text-h2);
+  }
+
+  .manifesto__statement {
+    margin-top: var(--space-md);
+    max-width: 62ch;
+  }
+
+  .manifesto__grid {
+    display: grid;
+    gap: var(--space-lg);
+    margin-top: var(--space-lg);
+  }
+
+  .manifesto__text {
+    display: grid;
+    gap: var(--space-sm);
+    align-content: start;
+    max-width: 34rem;
+  }
+
+  .manifesto__quote {
+    margin-top: var(--space-md);
+  }
+
+  .manifesto__visual {
+    position: relative;
+    min-height: 26rem;
+    display: grid;
+    align-items: center;
+  }
+
+  .manifesto__visual :global(.manifesto__brush) {
+    position: absolute;
+    top: 10%;
+    right: calc(-1 * var(--gutter));
+    bottom: -3rem;
+    left: 30%;
+    width: auto;
+    height: auto;
+  }
+
+  .manifesto__visual :global(.manifesto__photo) {
+    position: relative;
+    width: 78%;
+  }
+
+  /* Sezioni */
+  .section-head {
+    display: grid;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+  }
+
+  .section-head h2 {
+    font-size: var(--text-h2);
+  }
+
+  .section-head .lead {
+    max-width: 44rem;
+  }
+
+  /* Storie */
+  .stories__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+    gap: var(--space-lg) var(--space-md);
+  }
+
+  .stories__empty {
+    color: var(--color-gray);
+  }
+
+  /* Progetto */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    gap: var(--space-lg) var(--space-md);
+    padding: 0;
+    list-style: none;
+  }
+
+  .step {
+    display: grid;
+    gap: var(--space-xs);
+    align-content: start;
+    padding-top: var(--space-sm);
+    border-top: 3px solid var(--color-ink);
+  }
+
+  .step__number {
+    font-family: var(--font-display);
+    font-size: var(--text-h2);
+    line-height: 0.9;
+    color: var(--color-red);
+  }
+
+  .step__title {
+    font-size: var(--text-h3);
+    color: var(--color-ink);
+  }
+
+  /* Chiusura */
+  .closing {
+    overflow: hidden;
+  }
+
+  .closing :global(.closing__brush) {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: min(38vw, 26rem);
+    height: 100%;
+    opacity: 0.95;
+  }
+
+  .closing__text {
+    position: relative;
+    max-width: 26ch;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 1.3rem + 3vw, 4rem);
+    line-height: 1.05;
+    text-transform: uppercase;
+    color: var(--color-red);
+    text-wrap: balance;
+  }
+
+  @media (min-width: 48rem) {
+    .manifesto__grid {
+      grid-template-columns: 1fr 1fr;
+      align-items: start;
+    }
+
+    .manifesto__visual {
+      min-height: 34rem;
+    }
+  }
+
+  @media (max-width: 47.99rem) {
+    .hero :global(.hero__brush) {
+      width: 75vw;
+      height: 9rem;
+    }
+
+    .hero__title {
+      margin-top: 5.5rem;
+    }
+
+    .closing :global(.closing__brush) {
+      width: 40vw;
+      opacity: 0.35;
+    }
+  }
+</style>
