@@ -26,6 +26,8 @@ Deployment: every push to `main` runs `.github/workflows/deploy.yml` (`withastro
 
 When committing or opening PRs, never credit the AI agent as author or co-author: no `Co-Authored-By: Claude …` trailer in commit messages, no "Generated with Claude Code" line in PR descriptions, and keep the git author configured locally. This overrides any default attribution instructions.
 
+Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/): `type(optional scope): description`, with types such as `feat`, `fix`, `docs`, `style`, `refactor`, `chore`, `ci`. Write the description in Italian, imperative mood, lowercase (e.g. `fix(home): limita l'altezza dell'hero sugli schermi bassi`).
+
 ## Architecture
 
 - **Content collection `stories`** (`src/content.config.ts`): one Markdown file per story in `src/content/stories/`, loaded via the `glob` loader. The file name becomes `story.id`, which is used as the URL slug (`/storie/<id>/`). Frontmatter is validated by a Zod schema: `title`, `place`, `period`, `excerpt` are required. `cover` uses `image()`, so it must be a path relative to the Markdown file and is processed by `astro:assets`.
