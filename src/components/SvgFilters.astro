@@ -25,10 +25,10 @@ const grungeVariants = [
         <filter id={v.id} x="-2%" y="-2%" width="104%" height="104%" color-interpolation-filters="sRGB">
           {/* macchie ampie: zone in cui l'inchiostro non ha preso */}
           <feTurbulence type="fractalNoise" baseFrequency={v.blotch} numOctaves="3" seed="2" result="blotch" />
-          <feColorMatrix in="blotch" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -40 0 0 0 27.2" result="blotchMask" />
+          <feColorMatrix in="blotch" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -40 0 0 0 27.8" result="blotchMask" />
           {/* usura fine */}
           <feTurbulence type="fractalNoise" baseFrequency={v.wear} numOctaves="2" seed="7" result="wear" />
-          <feColorMatrix in="wear" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -40 0 0 0 27.8" result="wearMask" />
+          <feColorMatrix in="wear" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -40 0 0 0 28.4" result="wearMask" />
           <feComposite in="blotchMask" in2="wearMask" operator="in" result="mask" />
           <feComposite in="SourceGraphic" in2="mask" operator="in" result="eroded" />
           {/* leggera deformazione dei bordi */}
