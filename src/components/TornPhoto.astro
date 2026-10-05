@@ -15,6 +15,10 @@ interface Props {
   sizes?: string;
   /** `object-position` dell'immagine, per scegliere quale parte resta nel ritaglio 4:5. */
   position?: string;
+  /** Rapporto larghezza/altezza da usare al posto del ritaglio 4:5 (es. le proporzioni originali della foto). */
+  ratio?: number;
+  /** Mantiene i colori originali invece della resa in bianco e nero (la grana resta). */
+  color?: boolean;
 }
 
 const {
@@ -24,12 +28,21 @@ const {
   class: className,
   sizes = '(min-width: 768px) 40vw, 100vw',
   position,
+  ratio,
+  color = false,
 } = Astro.props;
 const rnd = createRandom(seed);
 
 // Angoli tagliati di sbieco + bordi leggermente frastagliati (coordinate in %).
-const cut = () => rnd.range(4, 18);
-const corners = { tl: [cut(), cut()], tr: [cut(), cut()], br: [cut(), cut()], bl: [cut(), cut()] };
+// Sulle foto orizzontali i tagli in larghezza si accorciano, così gli angoli non si mangiano l'immagine.
+const squeeze = ratio && ratio > 1 ? 1 / ratio : 1;
+const cut = (scale = 1) => rnd.range(4, 18) * scale;
+const corners = {
+  tl: [cut(squeeze), cut()],
+  tr: [cut(squeeze), cut()],
+  br: [cut(squeeze), cut()],
+  bl: [cut(squeeze), cut()],
+};
 const jitter = () => rnd.range(0, 1.6);
 const edge = (from: [number, number], to: [number, number], inward: [number, number]) => {
   const pts: string[] = [];
@@ -49,7 +62,10 @@ const polygon = [
 ].join(', ');
 ---
 
-<figure class:list={['torn', className]} style={`--torn-shape: polygon(${polygon})`}>
+<figure
+  class:list={['torn', color && 'torn--color', className]}
+  style={`--torn-shape: polygon(${polygon})${ratio ? `; aspect-ratio: ${ratio.toFixed(3)}` : ''}`}
+>
   {
     src ? (
       <Image
@@ -80,6 +96,10 @@ const polygon = [
     height: 100%;
     object-fit: cover;
     filter: grayscale(1) contrast(1.25) brightness(1.02);
+  }
+
+  .torn--color .torn__img {
+    filter: contrast(1.08);
   }
 
   .torn__placeholder {

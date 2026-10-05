@@ -1,7 +1,9 @@
 ---
 /**
- * Sezione "Media" di una storia: immagini (foto strappate, ingrandibili al clic) e audio.
- * Senza JS il clic su un'immagine apre semplicemente il file in grande.
+ * Sezione "Media" di una storia: immagini a colori (foto strappate, ingrandibili al clic) e audio.
+ * Le immagini scorrono in orizzontale su una sola fila, così anche gallerie lunghe non
+ * allungano la pagina; la lightbox permette di sfogliarle tutte con frecce e tastiera.
+ * Senza JS la fila resta scorrevole e il clic su un'immagine apre semplicemente il file in grande.
  */
 import type { CollectionEntry } from 'astro:content';
 import { getImage } from 'astro:assets';
@@ -20,6 +22,7 @@ const images = await Promise.all(
     .filter((item) => item.type === 'image')
     .map(async (item) => ({
       ...item,
+      ratio: item.src.width / item.src.height,
       large: await getImage({ src: item.src, width: Math.min(item.src.width, 1600) }),
     })),
 );
@@ -31,35 +34,63 @@ const caption = (item: { caption?: string; credit?: string }) =>
 <div class="media" data-media>
   {
     images.length > 0 && (
-      <ul class="media__gallery">
-        {images.map((image, i) => (
-          <li>
-            <figure class="media__figure">
-              <a
-                class="media__zoom"
-                href={image.large.src}
-                data-lightbox
-                data-alt={image.alt}
-                data-caption={caption(image)}
-                aria-label={`Ingrandisci: ${image.alt}`}
-              >
-                <TornPhoto
-                  src={image.src}
-                  alt={image.alt}
-                  seed={seed + i * 11 + 3}
-                  sizes="(min-width: 768px) 30vw, 100vw"
-                />
-              </a>
-              {(image.caption || image.credit) && (
-                <figcaption class="media__caption">
-                  {image.caption}
-                  {image.credit && <span class="media__credit">© {image.credit}</span>}
-                </figcaption>
-              )}
-            </figure>
-          </li>
-        ))}
-      </ul>
+      <div class="media__strip">
+        <div class="media__bar">
+          <p class="caps media__count">
+            {images.length} {images.length === 1 ? 'immagine' : 'immagini'}
+          </p>
+          <div class="media__arrows" data-strip-arrows hidden>
+            <button class="media__arrow" type="button" data-strip-prev aria-label="Immagini precedenti">
+              <span aria-hidden="true">←</span>
+            </button>
+            <button class="media__arrow" type="button" data-strip-next aria-label="Immagini successive">
+              <span aria-hidden="true">→</span>
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="media__scroller"
+          data-strip
+          tabindex="0"
+          role="region"
+          aria-label="Galleria di immagini, scorrevole in orizzontale"
+        >
+          <ul class="media__gallery">
+            {images.map((image, i) => (
+              <li class="media__item" style={`--ratio: ${image.ratio.toFixed(3)}`}>
+                <figure class="media__figure">
+                  <a
+                    class="media__zoom"
+                    href={image.large.src}
+                    data-lightbox
+                    data-alt={image.alt}
+                    data-ratio={image.ratio.toFixed(3)}
+                    data-height={Math.round(Math.min(image.src.width, 1600) / image.ratio)}
+                    data-caption={caption(image)}
+                    aria-label={`Ingrandisci: ${image.alt}`}
+                  >
+                    <TornPhoto
+                      src={image.src}
+                      alt={image.alt}
+                      seed={seed + i * 11 + 3}
+                      ratio={image.ratio}
+                      color
+                      sizes="(min-width: 48rem) 40vw, 85vw"
+                    />
+                  </a>
+                  {(image.caption || image.credit) && (
+                    <figcaption class="media__caption">
+                      {image.caption && <span class="media__caption-text">{image.caption}</span>}
+                      {image.credit && <span class="media__credit">© {image.credit}</span>}
+                    </figcaption>
+                  )}
+                </figure>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     )
   }
 
@@ -85,34 +116,97 @@ const caption = (item: { caption?: string; credit?: string }) =>
       <img class="lightbox__img" alt="" />
       <figcaption class="lightbox__caption"></figcaption>
     </figure>
-    <form method="dialog">
-      <button class="lightbox__close" type="submit">Chiudi <span aria-hidden="true">×</span></button>
-    </form>
+    <div class="lightbox__bar">
+      <div class="lightbox__nav" data-lightbox-nav>
+        <button class="lightbox__arrow" type="button" data-lightbox-prev aria-label="Immagine precedente">
+          <span aria-hidden="true">←</span>
+        </button>
+        <p class="lightbox__count" aria-live="polite"></p>
+        <button class="lightbox__arrow" type="button" data-lightbox-next aria-label="Immagine successiva">
+          <span aria-hidden="true">→</span>
+        </button>
+      </div>
+      <form method="dialog">
+        <button class="lightbox__close" type="submit">Chiudi <span aria-hidden="true">×</span></button>
+      </form>
+    </div>
   </dialog>
 </div>
 
 <script>
   for (const root of document.querySelectorAll<HTMLElement>('[data-media]')) {
+    root.dataset.enhanced = '';
+
+    // Fila di immagini: frecce che scorrono di circa una "pagina", visibili solo se serve
+    const strip = root.querySelector<HTMLElement>('[data-strip]');
+    const arrows = root.querySelector<HTMLElement>('[data-strip-arrows]');
+    if (strip && arrows) {
+      const prev = arrows.querySelector<HTMLButtonElement>('[data-strip-prev]')!;
+      const next = arrows.querySelector<HTMLButtonElement>('[data-strip-next]')!;
+      const update = () => {
+        const max = strip.scrollWidth - strip.clientWidth;
+        arrows.hidden = max <= 1;
+        prev.disabled = strip.scrollLeft <= 1;
+        next.disabled = strip.scrollLeft >= max - 1;
+      };
+      const page = (direction: number) =>
+        strip.scrollBy({ left: direction * strip.clientWidth * 0.85, behavior: 'smooth' });
+      prev.addEventListener('click', () => page(-1));
+      next.addEventListener('click', () => page(1));
+      strip.addEventListener('scroll', update, { passive: true });
+      new ResizeObserver(update).observe(strip);
+      update();
+    }
+
+    // Lightbox con navigazione tra tutte le immagini della sezione
     const dialog = root.querySelector<HTMLDialogElement>('.lightbox')!;
     const img = dialog.querySelector<HTMLImageElement>('.lightbox__img')!;
     const caption = dialog.querySelector<HTMLElement>('.lightbox__caption')!;
+    const nav = dialog.querySelector<HTMLElement>('[data-lightbox-nav]')!;
+    const count = dialog.querySelector<HTMLElement>('.lightbox__count')!;
+    const links = [...root.querySelectorAll<HTMLAnchorElement>('[data-lightbox]')];
+    let current = 0;
 
-    for (const link of root.querySelectorAll<HTMLAnchorElement>('[data-lightbox]')) {
+    nav.hidden = links.length < 2;
+
+    const show = (index: number) => {
+      current = (index + links.length) % links.length;
+      const link = links[current];
+      img.src = link.href;
+      img.alt = link.dataset.alt ?? '';
+      img.style.setProperty('--ratio', link.dataset.ratio ?? '1');
+      img.style.setProperty('--natural-h', `${link.dataset.height ?? 0}px`);
+      caption.textContent = link.dataset.caption ?? '';
+      caption.hidden = !caption.textContent;
+      count.textContent = `${current + 1} / ${links.length}`;
+    };
+
+    links.forEach((link, i) => {
       link.addEventListener('click', (event) => {
         event.preventDefault();
-        img.src = link.href;
-        img.alt = link.dataset.alt ?? '';
-        caption.textContent = link.dataset.caption ?? '';
-        caption.hidden = !caption.textContent;
+        show(i);
         dialog.showModal();
       });
-    }
+    });
+
+    dialog.querySelector('[data-lightbox-prev]')!.addEventListener('click', () => show(current - 1));
+    dialog.querySelector('[data-lightbox-next]')!.addEventListener('click', () => show(current + 1));
+    dialog.addEventListener('keydown', (event) => {
+      if (links.length < 2) return;
+      if (event.key === 'ArrowLeft') show(current - 1);
+      if (event.key === 'ArrowRight') show(current + 1);
+    });
 
     // Clic sullo sfondo (fuori dall'immagine) chiude il dialog
     dialog.addEventListener('click', (event) => {
       if (event.target === dialog) dialog.close();
     });
-    dialog.addEventListener('close', () => img.removeAttribute('src'));
+    // Alla chiusura il focus torna sull'ultima immagine vista, che viene portata in vista nella fila
+    dialog.addEventListener('close', () => {
+      img.removeAttribute('src');
+      links[current]?.focus({ preventScroll: true });
+      links[current]?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    });
   }
 </script>
 
@@ -122,12 +216,90 @@ const caption = (item: { caption?: string; credit?: string }) =>
     gap: var(--space-lg);
   }
 
-  .media__gallery {
+  /* Fila di immagini scorrevole: altezza fissa, ogni foto mantiene le sue proporzioni */
+  .media__strip {
+    --strip-h: clamp(13rem, 9rem + 12vw, 19rem);
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
-    gap: var(--space-lg) var(--space-md);
+    gap: var(--space-sm);
+  }
+
+  .media__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    min-height: 2.75rem;
+  }
+
+  .media__count {
+    color: var(--color-red);
+  }
+
+  .media__arrows {
+    display: flex;
+    gap: var(--space-xs);
+  }
+
+  .media__arrows[hidden] {
+    display: none;
+  }
+
+  .media__arrow,
+  .lightbox__arrow {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 3px solid var(--color-ink);
+    background: transparent;
+    color: var(--color-ink);
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+      background 0.2s ease,
+      color 0.2s ease;
+  }
+
+  .media__arrow:hover:not(:disabled),
+  .lightbox__arrow:hover {
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  .media__arrow:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .media__scroller {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    padding-bottom: var(--space-sm);
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-red) transparent;
+  }
+
+  .media__scroller:focus-visible {
+    outline: 3px solid var(--color-red);
+    outline-offset: 4px;
+  }
+
+  .media__gallery {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    width: max-content;
     padding: 0;
     list-style: none;
+  }
+
+  .media__item {
+    flex: none;
+    width: min(calc(var(--strip-h) * var(--ratio)), 85vw);
+    min-width: 10rem;
+    scroll-snap-align: start;
   }
 
   .media__figure {
@@ -154,6 +326,15 @@ const caption = (item: { caption?: string; credit?: string }) =>
     gap: 0.15rem;
     font-size: var(--text-sm);
     color: var(--color-ink-soft);
+  }
+
+  /* Con JS la didascalia completa si legge nella lightbox: nella fila bastano tre righe */
+  .media[data-enhanced] .media__caption-text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
   }
 
   .media__credit {
@@ -215,11 +396,14 @@ const caption = (item: { caption?: string; credit?: string }) =>
   }
 
   .lightbox__img {
-    width: auto;
-    max-width: 100%;
-    max-height: calc(92vh - 9rem);
+    /*
+     * Larghezza calcolata dalle proporzioni: l'immagine occupa lo spazio disponibile senza superare
+     * la sua altezza naturale, ma le foto d'archivio più piccole arrivano comunque a ~28rem.
+     */
+    --fit-h: min(92vh - 10rem, max(var(--natural-h, 0px), 28rem));
+    width: min(min(92vw, 70rem) - 2 * var(--space-sm), var(--fit-h) * var(--ratio, 1));
+    height: auto;
     margin-inline: auto;
-    filter: grayscale(1) contrast(1.15);
   }
 
   .lightbox__caption {
@@ -227,8 +411,33 @@ const caption = (item: { caption?: string; credit?: string }) =>
     color: var(--color-ink-soft);
   }
 
+  .lightbox__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+  }
+
+  .lightbox__nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .lightbox__nav[hidden] {
+    display: none;
+  }
+
+  .lightbox__count {
+    min-width: 4.5ch;
+    font-family: var(--font-display);
+    font-size: clamp(1.1rem, 1rem + 0.4vw, 1.35rem);
+    letter-spacing: 0.06em;
+    text-align: center;
+  }
+
   .lightbox__close {
-    justify-self: end;
     padding: 0.35em 0.9em 0.25em;
     border: 0;
     background: var(--color-red);
@@ -246,5 +455,6 @@ const caption = (item: { caption?: string; credit?: string }) =>
 
   .lightbox form {
     display: grid;
+    margin-left: auto;
   }
 </style>
