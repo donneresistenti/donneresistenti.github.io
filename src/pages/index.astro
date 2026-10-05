@@ -286,6 +286,13 @@ const steps = [
     gap: var(--space-lg) var(--space-md);
   }
 
+  /* Con subgrid le righe della griglia passano dentro le card (vedi StoryCard): lo spazio tra le card lo dà il loro padding */
+  @supports (grid-template-rows: subgrid) {
+    .stories__grid {
+      row-gap: 0;
+    }
+  }
+
   .stories__empty {
     color: var(--color-gray);
   }

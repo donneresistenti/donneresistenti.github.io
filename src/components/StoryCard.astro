@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import TornPhoto from './TornPhoto.astro';
+import { coverRatio } from '../lib/stories';
 
 interface Props {
   story: CollectionEntry<'stories'>;
@@ -13,7 +14,14 @@ const href = `${import.meta.env.BASE_URL}storie/${story.id}/`;
 ---
 
 <article class="story-card">
-  <TornPhoto src={cover} alt={coverAlt ?? ''} seed={index * 7 + 5} class="story-card__photo" sizes="(min-width: 768px) 33vw, 100vw" />
+  <TornPhoto
+    src={cover}
+    alt={coverAlt ?? ''}
+    seed={index * 7 + 5}
+    ratio={coverRatio(cover)}
+    class="story-card__photo"
+    sizes="(min-width: 768px) 33vw, 100vw"
+  />
   <p class="story-card__meta">{period}</p>
   <h3 class="story-card__title">
     <a href={href}>{title}</a>
@@ -29,7 +37,20 @@ const href = `${import.meta.env.BASE_URL}storie/${story.id}/`;
     align-content: start;
   }
 
+  /*
+   * Le copertine mantengono le proporzioni originali: con subgrid le card della stessa riga
+   * condividono le righe, così le foto poggiano sulla stessa linea e i titoli restano allineati.
+   */
+  @supports (grid-template-rows: subgrid) {
+    .story-card {
+      grid-row: span 4;
+      grid-template-rows: subgrid;
+      padding-bottom: var(--space-lg);
+    }
+  }
+
   .story-card :global(.story-card__photo) {
+    align-self: end;
     margin-bottom: var(--space-xs);
     transition: transform 0.35s ease;
   }

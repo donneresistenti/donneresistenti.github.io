@@ -11,7 +11,7 @@ import StoryNav from '../../components/StoryNav.astro';
 import Timeline from '../../components/Timeline.astro';
 import StoryMedia from '../../components/StoryMedia.astro';
 import StorySources from '../../components/StorySources.astro';
-import { getStories } from '../../lib/stories';
+import { coverRatio, getStories } from '../../lib/stories';
 
 export const getStaticPaths = (async () => {
   const stories = await getStories();
@@ -44,7 +44,13 @@ const section = Object.fromEntries(sections.map((s) => [s.id, s]));
           {subtitle && <p class="caps">{subtitle}</p>}
           <p class="lead story__excerpt">{excerpt}</p>
         </div>
-        <TornPhoto src={cover} alt={coverAlt ?? ''} seed={title.length} class="story__photo" />
+        <TornPhoto
+          src={cover}
+          alt={coverAlt ?? ''}
+          seed={title.length}
+          ratio={coverRatio(cover)}
+          class="story__photo"
+        />
       </div>
     </header>
 
