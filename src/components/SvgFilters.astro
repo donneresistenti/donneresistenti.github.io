@@ -4,6 +4,9 @@
  * - #grunge: consuma i titoli come la stampa a timbro del poster (PF Fuel Grime).
  * - #brush-h / #brush-v: bordi irregolari e striature "a setole" delle pennellate,
  *   orientate nel verso della pennellata.
+ * - #brush-line: come #brush-v, ma con la regione in coordinate utente per il tratto singolo
+ *   delle citazioni (Quote.astro, viewBox 40×400): su un tracciato quasi dritto la regione
+ *   relativa al bounding box taglierebbe lo spessore del tratto.
  *
  * Le soglie usano matrici a pendenza alta (-40) per avere buchi netti, non sfumati.
  * Il rumore ha una scala fissa in pixel: per i titoli più piccoli (.grunge--fine e sotto i 48rem)
@@ -56,6 +59,19 @@ const grungeVariants = [
         in="bristles"
         type="matrix"
         values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -40 0 0 0 28"
+        result="bristleMask"
+      />
+      <feComposite in="rough" in2="bristleMask" operator="in" />
+    </filter>
+
+    <filter id="brush-line" filterUnits="userSpaceOnUse" x="-20" y="-20" width="80" height="440" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="4" seed="17" result="noise" />
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G" result="rough" />
+      <feTurbulence type="fractalNoise" baseFrequency="0.3 0.006" numOctaves="3" seed="8" result="bristles" />
+      <feColorMatrix
+        in="bristles"
+        type="matrix"
+        values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -40 0 0 0 28.5"
         result="bristleMask"
       />
       <feComposite in="rough" in2="bristleMask" operator="in" />

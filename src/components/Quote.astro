@@ -1,0 +1,125 @@
+---
+/**
+ * Citazione da inserire nel testo delle storie (file .mdx).
+ * Pennellata verde verticale a sinistra, grandi virgolette rosse "a timbro"
+ * e, sotto, autore e fonte. Le virgolette sono decorative: il testo va scritto senza.
+ *
+ * Uso:
+ *   <Quote author="Nome Cognome" source="Titolo, anno">
+ *     Testo della citazione.
+ *   </Quote>
+ * Per una fonte con formattazione (es. titoli in corsivo) usare lo slot "source":
+ *   <Fragment slot="source">Articolo, in <cite>Rivista</cite>, 1935</Fragment>
+ */
+import { createRandom, round } from '../lib/random';
+
+interface Props {
+  author?: string;
+  source?: string;
+  seed?: number;
+}
+
+const { author, source, seed = 1 } = Astro.props;
+const hasSource = Boolean(source) || Astro.slots.has('source');
+const rnd = createRandom(seed);
+
+// Pennellata leggermente ondulata, stirata su tutta l'altezza della citazione.
+const W = 40;
+const H = 400;
+const amp = rnd.range(-5, 5);
+const brush = `M${W / 2} ${round(rnd.range(6, 16))} C${round(W / 2 + amp)} ${round(H / 3)} ${round(W / 2 - amp)} ${round((2 * H) / 3)} ${round(W / 2 + rnd.range(-3, 3))} ${round(H - rnd.range(6, 16))}`;
+---
+
+<figure class="quote">
+  <svg class="quote__brush" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <path d={brush} filter="url(#brush-line)" />
+  </svg>
+  <span class="quote__mark grunge" aria-hidden="true">“</span>
+  <blockquote class="quote__text">
+    <slot />
+  </blockquote>
+  {
+    (author || hasSource) && (
+      <figcaption class="quote__caption">
+        {author && <span class="quote__author">{author}</span>}
+        {hasSource && (
+          <span class="quote__source">
+            <slot name="source">{source}</slot>
+          </span>
+        )}
+      </figcaption>
+    )
+  }
+</figure>
+
+<style>
+  .quote {
+    display: grid;
+    grid-template-columns: 0.9rem minmax(0, 1fr);
+    column-gap: var(--space-md);
+    margin-block: var(--space-md);
+  }
+
+  .quote__brush {
+    grid-row: 1 / span 3;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .quote__brush path {
+    fill: none;
+    stroke: var(--color-green);
+    stroke-width: 26;
+    stroke-linecap: round;
+  }
+
+  .quote__mark {
+    grid-column: 2;
+    /* In Bebas Neue il glifo occupa solo la fascia tra 0.1em e 0.33em dall'alto della riga
+       (con line-height 1): lo si ingrandisce e si ritaglia la riga attorno al glifo,
+       con un piccolo margine perché il filtro #grunge non ne tagli il bordo. */
+    height: 0.36em;
+    margin-top: -0.1em;
+    margin-bottom: var(--space-xs);
+    font-family: var(--font-display);
+    font-size: clamp(12rem, 9rem + 8vw, 17rem);
+    line-height: 1;
+    color: var(--color-red);
+  }
+
+  .quote__text {
+    grid-column: 2;
+    display: grid;
+    gap: var(--space-sm);
+    font-size: var(--text-lead);
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  .quote__caption {
+    grid-column: 2;
+    display: grid;
+    gap: 0.25rem;
+    margin-top: var(--space-sm);
+  }
+
+  .quote__author {
+    font-family: var(--font-display);
+    font-size: var(--text-caps);
+    line-height: 1.1;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--color-red);
+  }
+
+  .quote__author::before {
+    content: '— ';
+  }
+
+  .quote__source {
+    font-size: var(--text-sm);
+    line-height: 1.4;
+    color: var(--color-ink-soft);
+  }
+</style>

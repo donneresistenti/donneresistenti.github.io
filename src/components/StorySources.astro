@@ -1,46 +1,90 @@
 ---
 /**
  * Sezione "Fonti" di una storia: elenco numerato di libri, articoli e risorse.
+ * Se le fonti hanno una categoria vengono raggruppate (Bibliografia, Filmografia, Sitografia),
+ * con una numerazione continua tra i gruppi; quelle senza categoria chiudono l'elenco.
  */
 import type { CollectionEntry } from 'astro:content';
 
+type Source = CollectionEntry<'stories'>['data']['sources'][number];
+
 interface Props {
-  sources: CollectionEntry<'stories'>['data']['sources'];
+  sources: Source[];
 }
 
 const { sources } = Astro.props;
+
+const labels: Record<NonNullable<Source['category']>, string> = {
+  bibliografia: 'Bibliografia',
+  filmografia: 'Filmografia',
+  sitografia: 'Sitografia',
+};
+const order = [...Object.keys(labels), undefined] as (Source['category'] | undefined)[];
+
+let count = 0;
+const groups = order
+  .map((category) => ({
+    label: category && labels[category],
+    items: sources
+      .filter((source) => source.category === category)
+      .map((source) => ({ ...source, number: String(++count).padStart(2, '0') })),
+  }))
+  .filter((group) => group.items.length > 0);
 ---
 
-<ol class="sources">
+<div class="sources">
   {
-    sources.map((source, i) => (
-      <li class="source">
-        <span class="source__number" aria-hidden="true">
-          {String(i + 1).padStart(2, '0')}
-        </span>
-        <p class="source__text">
-          {source.author && <span class="source__author">{source.author}, </span>}
-          {source.url ? (
-            <a href={source.url} rel="noopener">
-              <cite>{source.title}</cite>
-              <span aria-hidden="true"> ↗</span>
-            </a>
-          ) : (
-            <cite>{source.title}</cite>
-          )}
-          {source.details && <span>, {source.details}</span>}
-          {source.year && <span>, {source.year}</span>}.
-        </p>
-      </li>
+    groups.map((group) => (
+      <div class="sources__group">
+        {group.label && <h3 class="sources__title">{group.label}</h3>}
+        <ol class="sources__list">
+          {group.items.map((source) => (
+            <li class="source">
+              <span class="source__number" aria-hidden="true">
+                {source.number}
+              </span>
+              <p class="source__text">
+                {source.author && <span class="source__author">{source.author}, </span>}
+                {source.url ? (
+                  <a href={source.url} rel="noopener">
+                    <cite>{source.title}</cite>
+                    <span aria-hidden="true"> ↗</span>
+                  </a>
+                ) : (
+                  <cite>{source.title}</cite>
+                )}
+                {source.details && <span>, {source.details}</span>}
+                {source.year && <span>, {source.year}</span>}.
+              </p>
+            </li>
+          ))}
+        </ol>
+      </div>
     ))
   }
-</ol>
+</div>
 
 <style>
   .sources {
     display: grid;
-    gap: var(--space-sm);
+    gap: var(--space-lg);
     max-width: 48rem;
+  }
+
+  .sources__group {
+    display: grid;
+    gap: var(--space-sm);
+  }
+
+  .sources__title {
+    font-size: var(--text-caps);
+    line-height: 1.1;
+    color: var(--color-ink);
+  }
+
+  .sources__list {
+    display: grid;
+    gap: var(--space-sm);
     padding: 0;
     list-style: none;
   }

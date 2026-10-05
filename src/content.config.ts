@@ -3,7 +3,7 @@ import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
 const stories = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/stories' }),
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/stories' }),
   schema: ({ image }) =>
     z.object({
       title: z.string(),
@@ -50,10 +50,11 @@ const stories = defineCollection({
         )
         .default([]),
 
-      /** Sezione "Fonti": bibliografia e riferimenti. */
+      /** Sezione "Fonti": bibliografia e riferimenti, raggruppati per categoria se indicata. */
       sources: z
         .array(
           z.object({
+            category: z.enum(['bibliografia', 'filmografia', 'sitografia']).optional(),
             title: z.string(),
             author: z.string().optional(),
             details: z.string().optional(),
