@@ -15,7 +15,7 @@ export const getStaticPaths = (async () => {
 }) satisfies GetStaticPaths;
 
 const { story } = Astro.props;
-const { title, subtitle, place, period, excerpt, cover, coverAlt } = story.data;
+const { title, subtitle, period, excerpt, cover, coverAlt } = story.data;
 const { Content } = await render(story);
 ---
 
@@ -23,7 +23,7 @@ const { Content } = await render(story);
   <article class="section story">
     <div class="container story__inner">
       <header class="story__head">
-        <p class="eyebrow">{place} · {period}</p>
+        <p class="eyebrow">{period}</p>
         <h1 class="story__title grunge">{title}</h1>
         {subtitle && <p class="caps">{subtitle}</p>}
       </header>

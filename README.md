@@ -37,7 +37,6 @@ Crea un file in `src/content/stories/`, ad esempio `nome-cognome.md`:
 ---
 title: Nome Cognome
 subtitle: Sottotitolo facoltativo
-place: Luogo
 period: 1943–1945
 excerpt: Breve testo mostrato nella card in homepage.
 cover: ./immagini/nome-cognome.jpg   # facoltativa, percorso relativo al file

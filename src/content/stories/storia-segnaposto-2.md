@@ -1,6 +1,5 @@
 ---
 title: Storia segnaposto 2
-place: Luogo
 period: Periodo
 excerpt: Breve estratto che introduce la storia e invita a scoprirla. Sostituire con il contenuto reale.
 order: 2

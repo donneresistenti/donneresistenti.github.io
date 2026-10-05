@@ -8,7 +8,6 @@ const stories = defineCollection({
     z.object({
       title: z.string(),
       subtitle: z.string().optional(),
-      place: z.string(),
       period: z.string(),
       excerpt: z.string(),
       cover: image().optional(),

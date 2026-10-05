@@ -8,13 +8,13 @@ interface Props {
 }
 
 const { story, index } = Astro.props;
-const { title, place, period, excerpt, cover, coverAlt } = story.data;
+const { title, period, excerpt, cover, coverAlt } = story.data;
 const href = `${import.meta.env.BASE_URL}storie/${story.id}/`;
 ---
 
 <article class="story-card">
   <TornPhoto src={cover} alt={coverAlt ?? ''} seed={index * 7 + 5} class="story-card__photo" sizes="(min-width: 768px) 33vw, 100vw" />
-  <p class="story-card__meta">{place} · {period}</p>
+  <p class="story-card__meta">{period}</p>
   <h3 class="story-card__title">
     <a href={href}>{title}</a>
   </h3>
