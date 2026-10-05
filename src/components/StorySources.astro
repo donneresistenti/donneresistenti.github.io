@@ -1,0 +1,78 @@
+---
+/**
+ * Sezione "Fonti" di una storia: elenco numerato di libri, articoli e risorse.
+ */
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  sources: CollectionEntry<'stories'>['data']['sources'];
+}
+
+const { sources } = Astro.props;
+---
+
+<ol class="sources">
+  {
+    sources.map((source, i) => (
+      <li class="source">
+        <span class="source__number" aria-hidden="true">
+          {String(i + 1).padStart(2, '0')}
+        </span>
+        <p class="source__text">
+          {source.author && <span class="source__author">{source.author}, </span>}
+          {source.url ? (
+            <a href={source.url} rel="noopener">
+              <cite>{source.title}</cite>
+              <span aria-hidden="true"> ↗</span>
+            </a>
+          ) : (
+            <cite>{source.title}</cite>
+          )}
+          {source.details && <span>, {source.details}</span>}
+          {source.year && <span>, {source.year}</span>}.
+        </p>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .sources {
+    display: grid;
+    gap: var(--space-sm);
+    max-width: 48rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .source {
+    display: grid;
+    grid-template-columns: 2.5rem 1fr;
+    gap: var(--space-sm);
+    align-items: baseline;
+    padding-top: var(--space-sm);
+    border-top: 1px solid color-mix(in srgb, var(--color-ink) 25%, transparent);
+  }
+
+  .source__number {
+    font-family: var(--font-display);
+    font-size: var(--text-caps);
+    line-height: 1;
+    color: var(--color-red);
+  }
+
+  .source__author {
+    font-weight: 400;
+  }
+
+  .source a {
+    text-decoration-color: var(--color-green);
+    text-decoration-thickness: 0.15em;
+    text-underline-offset: 0.2em;
+    transition: color 0.2s ease;
+  }
+
+  .source a:hover {
+    color: var(--color-red);
+  }
+</style>

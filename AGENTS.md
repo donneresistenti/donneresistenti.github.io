@@ -32,6 +32,8 @@ Commit messages follow [Conventional Commits](https://www.conventionalcommits.or
 
 - **Content collection `stories`** (`src/content.config.ts`): one Markdown file per story in `src/content/stories/`, loaded via the `glob` loader. The file name becomes `story.id`, which is used as the URL slug (`/storie/<id>/`). Frontmatter is validated by a Zod schema: `title`, `period`, `excerpt` are required. `cover` uses `image()`, so it must be a path relative to the Markdown file and is processed by `astro:assets`.
 - **`getStories()`** (`src/lib/stories.ts`) is the single entry point for reading stories. It filters out `draft: true` in production (kept in dev) and sorts by `order`. Both the homepage grid and `src/pages/storie/[slug].astro` (`getStaticPaths`) use it, so draft handling stays consistent.
+- **Story page sections**: `src/pages/storie/[slug].astro` renders Cronologia (`timeline` frontmatter → `Timeline.astro`, an interactive ARIA-tabs timeline), Storia (the Markdown body), Media (`media` frontmatter → `StoryMedia.astro`, images with a `<dialog>` lightbox plus audio) and Fonti (`sources` frontmatter → `StorySources.astro`), with a sticky `StoryNav`. Empty sections are omitted from both the page and the nav. Interactive components are progressively enhanced, so their content must stay readable without JS.
+- Audio files live in `public/` (`astro:assets` doesn't handle audio) and are referenced through `withBase()` from `src/lib/url.ts`.
 - The `storia-segnaposto-*.md` files are placeholders that only exist to fill the grid. Remove them once real stories arrive.
 - **Links must go through `import.meta.env.BASE_URL`** (see `StoryCard`, `BaseLayout`, the story page) so the site keeps working if a `base` is ever configured.
 

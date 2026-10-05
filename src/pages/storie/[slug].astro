@@ -1,12 +1,16 @@
 ---
 /**
- * Pagina di dettaglio di una storia. Per ora è un template minimo:
- * verrà sviluppato quando aggiungeremo le singole storie.
+ * Pagina di dettaglio di una storia, divisa in sezioni: Cronologia, Storia, Media e Fonti.
+ * Le sezioni senza contenuto vengono omesse, sia dalla pagina sia dall'indice.
  */
 import type { GetStaticPaths } from 'astro';
 import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import TornPhoto from '../../components/TornPhoto.astro';
+import StoryNav from '../../components/StoryNav.astro';
+import Timeline from '../../components/Timeline.astro';
+import StoryMedia from '../../components/StoryMedia.astro';
+import StorySources from '../../components/StorySources.astro';
 import { getStories } from '../../lib/stories';
 
 export const getStaticPaths = (async () => {
@@ -15,34 +19,113 @@ export const getStaticPaths = (async () => {
 }) satisfies GetStaticPaths;
 
 const { story } = Astro.props;
-const { title, subtitle, period, excerpt, cover, coverAlt } = story.data;
+const { title, subtitle, period, excerpt, cover, coverAlt, timeline, media, sources } = story.data;
 const { Content } = await render(story);
+const hasBody = Boolean(story.body?.trim());
+
+const sections = [
+  { id: 'cronologia', label: 'Cronologia', show: timeline.length > 0 },
+  { id: 'storia', label: 'Storia', show: hasBody },
+  { id: 'media', label: 'Media', show: media.length > 0 },
+  { id: 'fonti', label: 'Fonti', show: sources.length > 0 },
+]
+  .filter((section) => section.show)
+  .map((section, i) => ({ ...section, number: String(i + 1).padStart(2, '0') }));
+const section = Object.fromEntries(sections.map((s) => [s.id, s]));
 ---
 
 <BaseLayout title={title} description={excerpt}>
-  <article class="section story">
-    <div class="container story__inner">
-      <header class="story__head">
-        <p class="eyebrow">{period}</p>
-        <h1 class="story__title grunge">{title}</h1>
-        {subtitle && <p class="caps">{subtitle}</p>}
-      </header>
-      <TornPhoto src={cover} alt={coverAlt ?? ''} seed={title.length} class="story__photo" />
-      <div class="story__body">
-        <Content />
+  <article class="story">
+    <header class="section story__head">
+      <div class="container story__intro">
+        <div class="story__heading">
+          <p class="eyebrow">{period}</p>
+          <h1 class="story__title grunge">{title}</h1>
+          {subtitle && <p class="caps">{subtitle}</p>}
+          <p class="lead story__excerpt">{excerpt}</p>
+        </div>
+        <TornPhoto src={cover} alt={coverAlt ?? ''} seed={title.length} class="story__photo" />
       </div>
+    </header>
+
+    {sections.length > 1 && <StoryNav sections={sections} />}
+
+    {
+      section.cronologia && (
+        <section id="cronologia" class="section story__section" aria-labelledby="cronologia-title">
+          <div class="container">
+            <header class="story__section-head">
+              <span class="story__number" aria-hidden="true">{section.cronologia.number}</span>
+              <h2 id="cronologia-title" class="grunge">Cronologia</h2>
+            </header>
+            <Timeline events={timeline} seed={title.length + 1} />
+          </div>
+        </section>
+      )
+    }
+
+    {
+      section.storia && (
+        <section id="storia" class="section story__section" aria-labelledby="storia-title">
+          <div class="container">
+            <header class="story__section-head">
+              <span class="story__number" aria-hidden="true">{section.storia.number}</span>
+              <h2 id="storia-title" class="grunge">Storia</h2>
+            </header>
+            <div class="story__body">
+              <Content />
+            </div>
+          </div>
+        </section>
+      )
+    }
+
+    {
+      section.media && (
+        <section id="media" class="section story__section" aria-labelledby="media-title">
+          <div class="container">
+            <header class="story__section-head">
+              <span class="story__number" aria-hidden="true">{section.media.number}</span>
+              <h2 id="media-title" class="grunge">Media</h2>
+            </header>
+            <StoryMedia items={media} seed={title.length + 2} />
+          </div>
+        </section>
+      )
+    }
+
+    {
+      section.fonti && (
+        <section id="fonti" class="section story__section" aria-labelledby="fonti-title">
+          <div class="container">
+            <header class="story__section-head">
+              <span class="story__number" aria-hidden="true">{section.fonti.number}</span>
+              <h2 id="fonti-title" class="grunge">Fonti</h2>
+            </header>
+            <StorySources sources={sources} />
+          </div>
+        </section>
+      )
+    }
+
+    <div class="container story__footer">
       <a class="story__back" href={`${import.meta.env.BASE_URL}#storie`}>← Tutte le storie</a>
     </div>
   </article>
 </BaseLayout>
 
 <style>
-  .story__inner {
-    display: grid;
-    gap: var(--space-lg);
+  .story__head {
+    padding-top: var(--space-lg);
   }
 
-  .story__head {
+  .story__intro {
+    display: grid;
+    gap: var(--space-lg);
+    align-items: end;
+  }
+
+  .story__heading {
     display: grid;
     gap: var(--space-sm);
   }
@@ -51,8 +134,44 @@ const { Content } = await render(story);
     font-size: var(--text-h2);
   }
 
-  .story__inner :global(.story__photo) {
-    max-width: 32rem;
+  .story__excerpt {
+    max-width: 38rem;
+    margin-top: var(--space-xs);
+  }
+
+  .story__intro :global(.story__photo) {
+    width: 100%;
+    max-width: 26rem;
+  }
+
+  /* Sezioni */
+  .story__section {
+    padding-block: var(--space-lg) var(--space-xl);
+    /* non finire sotto l'indice sticky quando si arriva da un'ancora */
+    scroll-margin-top: 5rem;
+  }
+
+  .story__section + .story__section {
+    padding-top: 0;
+  }
+
+  .story__section-head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+  }
+
+  .story__section-head h2 {
+    font-size: var(--text-h2);
+  }
+
+  .story__number {
+    font-family: var(--font-display);
+    font-size: var(--text-h3);
+    line-height: 1;
+    letter-spacing: 0.04em;
+    color: var(--color-ink);
   }
 
   .story__body {
@@ -62,6 +181,10 @@ const { Content } = await render(story);
     font-size: var(--text-lead);
   }
 
+  .story__footer {
+    padding-bottom: var(--space-xl);
+  }
+
   .story__back {
     font-family: var(--font-display);
     font-size: var(--text-caps);
@@ -69,5 +192,11 @@ const { Content } = await render(story);
     text-transform: uppercase;
     text-decoration: none;
     color: var(--color-red);
+  }
+
+  @media (min-width: 48rem) {
+    .story__intro {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+    }
   }
 </style>

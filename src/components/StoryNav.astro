@@ -1,0 +1,118 @@
+---
+/**
+ * Indice delle sezioni di una storia, fisso in alto durante lo scroll.
+ * Evidenzia la sezione corrente (IntersectionObserver); senza JS resta un elenco di ancore.
+ */
+interface Props {
+  sections: { id: string; label: string }[];
+}
+
+const { sections } = Astro.props;
+---
+
+<nav class="story-nav" aria-label="Sezioni della storia" data-story-nav>
+  <div class="container">
+    <ul class="story-nav__list">
+      {
+        sections.map((section) => (
+          <li>
+            <a href={`#${section.id}`}>{section.label}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</nav>
+
+<script>
+  for (const nav of document.querySelectorAll<HTMLElement>('[data-story-nav]')) {
+    const list = nav.querySelector<HTMLElement>('.story-nav__list')!;
+    const links = [...nav.querySelectorAll<HTMLAnchorElement>('a[href^="#"]')];
+    const targets = links
+      .map((link) => document.getElementById(link.hash.slice(1)))
+      .filter((el): el is HTMLElement => el !== null);
+    const visible = new Set<Element>();
+
+    const setActive = (id: string) => {
+      for (const link of links) {
+        if (link.hash === `#${id}`) {
+          link.setAttribute('aria-current', 'true');
+          // Su schermi stretti l'elenco scorre: tiene in vista la voce attiva senza muovere la pagina
+          // (scrollIntoView interromperebbe lo scroll animato verso l'ancora).
+          const left = link.offsetLeft - list.offsetLeft;
+          if (left < list.scrollLeft || left + link.offsetWidth > list.scrollLeft + list.clientWidth) {
+            list.scrollTo({ left: left - 16 });
+          }
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      }
+    };
+
+    // Sezione attiva = la prima (in ordine di pagina) che attraversa la fascia alta del viewport.
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) visible.add(entry.target);
+          else visible.delete(entry.target);
+        }
+        // Tra due sezioni brevi la fascia può restare vuota: si tiene l'ultima voce attiva
+        const active = targets.find((t) => visible.has(t));
+        if (active) setActive(active.id);
+      },
+      { rootMargin: '-20% 0px -60% 0px' },
+    );
+    targets.forEach((t) => observer.observe(t));
+  }
+</script>
+
+<style>
+  .story-nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding-block: var(--space-xs);
+    background: color-mix(in srgb, var(--color-paper) 88%, transparent);
+    backdrop-filter: blur(6px);
+    border-bottom: 3px solid var(--color-ink);
+  }
+
+  .story-nav__list {
+    display: flex;
+    gap: var(--space-md);
+    padding: 0;
+    list-style: none;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .story-nav__list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .story-nav a {
+    display: inline-block;
+    padding-block: 0.15em;
+    font-family: var(--font-display);
+    font-size: clamp(1.1rem, 1rem + 0.4vw, 1.35rem);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    color: var(--color-ink);
+    background: linear-gradient(var(--color-green), var(--color-green)) no-repeat 0 100% / 0 0.35em;
+    transition:
+      background-size 0.25s ease,
+      color 0.25s ease;
+  }
+
+  .story-nav a:hover,
+  .story-nav a:focus-visible {
+    background-size: 100% 0.35em;
+  }
+
+  .story-nav a[aria-current] {
+    color: var(--color-red);
+    background-size: 100% 0.35em;
+  }
+</style>

@@ -1,0 +1,250 @@
+---
+/**
+ * Sezione "Media" di una storia: immagini (foto strappate, ingrandibili al clic) e audio.
+ * Senza JS il clic su un'immagine apre semplicemente il file in grande.
+ */
+import type { CollectionEntry } from 'astro:content';
+import { getImage } from 'astro:assets';
+import TornPhoto from './TornPhoto.astro';
+import { withBase } from '../lib/url';
+
+interface Props {
+  items: CollectionEntry<'stories'>['data']['media'];
+  seed?: number;
+}
+
+const { items, seed = 3 } = Astro.props;
+
+const images = await Promise.all(
+  items
+    .filter((item) => item.type === 'image')
+    .map(async (item) => ({
+      ...item,
+      large: await getImage({ src: item.src, width: Math.min(item.src.width, 1600) }),
+    })),
+);
+const audios = items.filter((item) => item.type === 'audio');
+const caption = (item: { caption?: string; credit?: string }) =>
+  [item.caption, item.credit && `© ${item.credit}`].filter(Boolean).join(' — ');
+---
+
+<div class="media" data-media>
+  {
+    images.length > 0 && (
+      <ul class="media__gallery">
+        {images.map((image, i) => (
+          <li>
+            <figure class="media__figure">
+              <a
+                class="media__zoom"
+                href={image.large.src}
+                data-lightbox
+                data-alt={image.alt}
+                data-caption={caption(image)}
+                aria-label={`Ingrandisci: ${image.alt}`}
+              >
+                <TornPhoto
+                  src={image.src}
+                  alt={image.alt}
+                  seed={seed + i * 11 + 3}
+                  sizes="(min-width: 768px) 30vw, 100vw"
+                />
+              </a>
+              {(image.caption || image.credit) && (
+                <figcaption class="media__caption">
+                  {image.caption}
+                  {image.credit && <span class="media__credit">© {image.credit}</span>}
+                </figcaption>
+              )}
+            </figure>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  {
+    audios.length > 0 && (
+      <ul class="media__audios">
+        {audios.map((audio) => (
+          <li class="media__audio">
+            <p class="caps media__audio-title">{audio.title}</p>
+            {audio.description && <p>{audio.description}</p>}
+            <audio controls preload="none" src={withBase(audio.src)}>
+              <a href={withBase(audio.src)}>Scarica l’audio</a>
+            </audio>
+            {audio.credit && <p class="media__credit">© {audio.credit}</p>}
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  <dialog class="lightbox" aria-label="Immagine ingrandita">
+    <figure class="lightbox__figure">
+      <img class="lightbox__img" alt="" />
+      <figcaption class="lightbox__caption"></figcaption>
+    </figure>
+    <form method="dialog">
+      <button class="lightbox__close" type="submit">Chiudi <span aria-hidden="true">×</span></button>
+    </form>
+  </dialog>
+</div>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('[data-media]')) {
+    const dialog = root.querySelector<HTMLDialogElement>('.lightbox')!;
+    const img = dialog.querySelector<HTMLImageElement>('.lightbox__img')!;
+    const caption = dialog.querySelector<HTMLElement>('.lightbox__caption')!;
+
+    for (const link of root.querySelectorAll<HTMLAnchorElement>('[data-lightbox]')) {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        img.src = link.href;
+        img.alt = link.dataset.alt ?? '';
+        caption.textContent = link.dataset.caption ?? '';
+        caption.hidden = !caption.textContent;
+        dialog.showModal();
+      });
+    }
+
+    // Clic sullo sfondo (fuori dall'immagine) chiude il dialog
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+    dialog.addEventListener('close', () => img.removeAttribute('src'));
+  }
+</script>
+
+<style>
+  .media {
+    display: grid;
+    gap: var(--space-lg);
+  }
+
+  .media__gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+    gap: var(--space-lg) var(--space-md);
+    padding: 0;
+    list-style: none;
+  }
+
+  .media__figure {
+    display: grid;
+    gap: var(--space-xs);
+  }
+
+  .media__zoom {
+    display: block;
+    cursor: zoom-in;
+  }
+
+  .media__zoom :global(.torn) {
+    transition: transform 0.35s ease;
+  }
+
+  .media__zoom:hover :global(.torn),
+  .media__zoom:focus-visible :global(.torn) {
+    transform: rotate(-1.2deg) scale(1.02);
+  }
+
+  .media__caption {
+    display: grid;
+    gap: 0.15rem;
+    font-size: var(--text-sm);
+    color: var(--color-ink-soft);
+  }
+
+  .media__credit {
+    font-size: var(--text-sm);
+    color: var(--color-gray);
+  }
+
+  /* Audio */
+  .media__audios {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+    gap: var(--space-lg) var(--space-md);
+    padding: 0;
+    list-style: none;
+  }
+
+  .media__audio {
+    display: grid;
+    gap: var(--space-xs);
+    align-content: start;
+    padding-top: var(--space-sm);
+    border-top: 3px solid var(--color-ink);
+  }
+
+  .media__audio-title {
+    color: var(--color-red);
+  }
+
+  .media__audio audio {
+    width: 100%;
+    margin-block: var(--space-xs);
+    accent-color: var(--color-red);
+  }
+
+  /* Lightbox */
+  .lightbox {
+    max-width: min(92vw, 70rem);
+    max-height: 92vh;
+    margin: auto; /* il reset globale azzera il margine che centra il dialog */
+    padding: var(--space-sm);
+    border: 0;
+    background: var(--color-paper);
+    color: var(--color-ink);
+  }
+
+  .lightbox::backdrop {
+    background: rgb(18 16 16 / 0.85);
+  }
+
+  .lightbox[open] {
+    display: grid;
+    gap: var(--space-sm);
+    animation: rise 0.35s ease both;
+  }
+
+  .lightbox__figure {
+    display: grid;
+    gap: var(--space-xs);
+  }
+
+  .lightbox__img {
+    width: auto;
+    max-width: 100%;
+    max-height: calc(92vh - 9rem);
+    margin-inline: auto;
+    filter: grayscale(1) contrast(1.15);
+  }
+
+  .lightbox__caption {
+    font-size: var(--text-sm);
+    color: var(--color-ink-soft);
+  }
+
+  .lightbox__close {
+    justify-self: end;
+    padding: 0.35em 0.9em 0.25em;
+    border: 0;
+    background: var(--color-red);
+    color: var(--color-paper);
+    font-family: var(--font-display);
+    font-size: clamp(1.1rem, 1rem + 0.4vw, 1.35rem);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .lightbox__close:hover {
+    background: var(--color-red-dark);
+  }
+
+  .lightbox form {
+    display: grid;
+  }
+</style>

@@ -43,10 +43,39 @@ cover: ./immagini/nome-cognome.jpg   # facoltativa, percorso relativo al file
 coverAlt: Descrizione dell'immagine
 order: 1                             # posizione nella griglia
 draft: false                         # true = visibile solo in sviluppo
+
+timeline:                            # sezione "Cronologia" (linea del tempo interattiva)
+  - date: 8 settembre 1943           # testo libero
+    title: Titolo della tappa
+    text: Breve descrizione della tappa.
+    image: ./immagini/tappa.jpg      # facoltativa
+    imageAlt: Descrizione dell'immagine
+
+media:                               # sezione "Media"
+  - type: image
+    src: ./immagini/foto.jpg
+    alt: Descrizione dell'immagine
+    caption: Didascalia              # facoltativa
+    credit: Archivio                 # facoltativo
+  - type: audio
+    src: media/nome-cognome/intervista.mp3   # file in public/, oppure un URL https://
+    title: Titolo dell'audio
+    description: Descrizione         # facoltativa
+    credit: Archivio                 # facoltativo
+
+sources:                             # sezione "Fonti"
+  - author: Nome Cognome             # facoltativo
+    title: Titolo dell'opera
+    details: Editore, pagine         # facoltativo
+    year: 1975                       # facoltativo
+    url: https://…                   # facoltativo
 ---
 
-Testo della storia in Markdown.
+Testo della storia in Markdown (sezione "Storia").
 ```
+
+La pagina di ogni storia è divisa in quattro sezioni: Cronologia, Storia, Media e Fonti. Le sezioni
+senza contenuto non vengono mostrate. I file audio vanno messi in `public/media/<nome-storia>/`.
 
 Le storie con `draft: true` compaiono solo con `npm run dev` e non vengono pubblicate.
 Le tre `storia-segnaposto-*.md` attuali servono solo a vedere la griglia: vanno rimosse
