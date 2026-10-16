@@ -17,3 +17,4 @@ npm-debug.log*
 
 # sorgenti grafici pesanti (restano fuori dal repo)
 *.psd
+dist-offline/
