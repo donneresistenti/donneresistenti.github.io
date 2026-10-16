@@ -7,25 +7,6 @@ import { getStories } from '../lib/stories';
 import fotoPalestina from '../assets/palestina.jpg';
 
 const stories = await getStories();
-
-const steps = [
-  {
-    title: 'Ricerca',
-    text: 'Raccolta di fonti, documenti e testimonianze sulle donne che hanno preso parte alle resistenze.',
-  },
-  {
-    title: 'Analisi',
-    text: 'Studio e confronto delle storie, per restituirne il contesto storico, politico e sociale.',
-  },
-  {
-    title: 'Stesura',
-    text: 'Scrittura dei testi che accompagnano ogni storia raccontata nella mostra.',
-  },
-  {
-    title: 'Rappresentazione',
-    text: 'Progettazione dei poster della mostra e di questo sito, per rendere le storie accessibili a chiunque.',
-  },
-];
 ---
 
 <BaseLayout>
@@ -120,19 +101,13 @@ const steps = [
         </p>
       </header>
 
-      <ol class="steps">
-        {
-          steps.map((step, i) => (
-            <li class="step">
-              <span class="step__number grunge" aria-hidden="true">
-                {String(i + 1).padStart(2, '0')}
-              </span>
-              <h3 class="step__title">{step.title}</h3>
-              <p>{step.text}</p>
-            </li>
-          ))
-        }
-      </ol>
+      <!-- TODO: sostituire il segnaposto con la descrizione del progetto -->
+      <div class="project__description">
+        <p>
+          Qui verrà inserita la descrizione del progetto: com’è nato, chi ci ha lavorato e come è
+          stata costruita la mostra.
+        </p>
+      </div>
     </div>
   </section>
 
@@ -298,32 +273,10 @@ const steps = [
   }
 
   /* Progetto */
-  .steps {
+  .project__description {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
-    gap: var(--space-lg) var(--space-md);
-    padding: 0;
-    list-style: none;
-  }
-
-  .step {
-    display: grid;
-    gap: var(--space-xs);
-    align-content: start;
-    padding-top: var(--space-sm);
-    border-top: 3px solid var(--color-ink);
-  }
-
-  .step__number {
-    font-family: var(--font-display);
-    font-size: var(--text-h2);
-    line-height: 0.9;
-    color: var(--color-red);
-  }
-
-  .step__title {
-    font-size: var(--text-h3);
-    color: var(--color-ink);
+    gap: var(--space-sm);
+    max-width: 44rem;
   }
 
   /* Chiusura */
