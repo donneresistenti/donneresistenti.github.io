@@ -43,19 +43,22 @@ const groups = order
               <span class="source__number" aria-hidden="true">
                 {source.number}
               </span>
-              <p class="source__text">
-                {source.author && <span class="source__author">{source.author}, </span>}
-                {source.url ? (
-                  <a href={source.url} rel="noopener">
+              <div class="source__body">
+                <p class="source__text">
+                  {source.author && <span class="source__author">{source.author}, </span>}
+                  {source.url ? (
+                    <a href={source.url} rel="noopener">
+                      <cite>{source.title}</cite>
+                      <span aria-hidden="true"> ↗</span>
+                    </a>
+                  ) : (
                     <cite>{source.title}</cite>
-                    <span aria-hidden="true"> ↗</span>
-                  </a>
-                ) : (
-                  <cite>{source.title}</cite>
-                )}
-                {source.details && <span>, {source.details}</span>}
-                {source.year && <span>, {source.year}</span>}.
-              </p>
+                  )}
+                  {source.details && <span>, {source.details}</span>}
+                  {source.year && <span>, {source.year}</span>}.
+                </p>
+                {source.description && <p class="source__description">{source.description}</p>}
+              </div>
             </li>
           ))}
         </ol>
@@ -107,6 +110,15 @@ const groups = order
 
   .source__author {
     font-weight: 400;
+  }
+
+  .source__body {
+    display: grid;
+    gap: var(--space-xs);
+  }
+
+  .source__description {
+    font-size: var(--text-sm);
   }
 
   .source a {

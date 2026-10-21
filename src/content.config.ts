@@ -60,6 +60,8 @@ const stories = defineCollection({
             details: z.string().optional(),
             year: z.union([z.string(), z.number()]).optional(),
             url: z.url().optional(),
+            /** Breve presentazione della fonte, mostrata sotto il riferimento. */
+            description: z.string().optional(),
           }),
         )
         .default([]),
