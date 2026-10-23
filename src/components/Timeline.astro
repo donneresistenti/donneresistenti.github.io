@@ -45,6 +45,8 @@ const stops = events.map((event, i) => ({
   ...event,
   tabId: `${id}-tappa-${i + 1}`,
   panelId: `${id}-dettaglio-${i + 1}`,
+  // Una riga vuota nel testo separa i paragrafi.
+  paragraphs: event.text.split(/\n\s*\n/),
   shape: blob(),
 }));
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -112,7 +114,9 @@ const pad = (n: number) => String(n).padStart(2, '0');
           <div class="timeline__text">
             <p class="timeline__panel-date grunge grunge--fine">{stop.date}</p>
             <h3 class="timeline__title">{stop.title}</h3>
-            <p class="timeline__body">{stop.text}</p>
+            {stop.paragraphs.map((paragraph) => (
+              <p class="timeline__body">{paragraph}</p>
+            ))}
           </div>
           {stop.image && (
             <TornPhoto
@@ -398,6 +402,10 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
   .timeline__body {
     font-size: var(--text-lead);
+  }
+
+  .timeline__body + .timeline__body {
+    margin-top: var(--space-sm);
   }
 
   .timeline__panels :global(.timeline__photo) {
